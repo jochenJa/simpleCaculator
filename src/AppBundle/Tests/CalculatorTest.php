@@ -61,12 +61,13 @@ Number(1)
 Number(2.5)
 Add Substract Multiply Divide
 Bracket Number(1) Add Number(1)
+
 TREE;
         $expressions = [
             ' 1 ',
             '2.5',
             '+-*/',
-            '[1+ 1'
+            '[1+ 1]'
         ];
 
         $actual = '';
@@ -114,14 +115,20 @@ class ExpressionSeperator
         while(! empty($parts)) {
             $part = array_pop($parts);
             switch ($part) {
-                case ' ':
-                    break;
                 case (preg_match('/[0-9.]/', $part) ? true : false):
                     if(! $number) {
                         $expressions[] = $number = new Number();
                     }
                     $number->add($part);
                     break;
+                case (preg_match('/[+-\/*]/', $part) ? true : false):
+                    $expressions[] = SolverFactory::buildSolver($part);
+                    break;
+                case (preg_match('/[\[\]]/', $part) ? true : false):
+                    $expressions[] = new Bracket();
+                    break;
+                default:
+                    $number = false;
             }
         }
         return $expressions;
@@ -139,9 +146,25 @@ class SolverFactory {
                 return new Multiply();
             case '-':
                 return new Subtract();
+            case '/':
+                return new Divide();
         }
 
         return null;
+    }
+}
+
+class Bracket implements SolverInterface
+{
+
+    public function solve($step, $input)
+    {
+        // TODO: Implement solve() method.
+    }
+
+    public function __toString()
+    {
+        return "Bracket";
     }
 }
 
@@ -193,6 +216,11 @@ class Add implements SolverInterface
     {
         return $input + $step;
     }
+
+    public function __toString()
+    {
+        return "Add";
+    }
 }
 
 class Subtract implements SolverInterface
@@ -200,6 +228,11 @@ class Subtract implements SolverInterface
     public function solve($step, $input)
     {
         return $input - $step;
+    }
+
+    public function __toString()
+    {
+        return "Substract";
     }
 }
 
@@ -209,6 +242,25 @@ class Multiply implements SolverInterface
     {
         return $input * $step;
     }
+
+    public function __toString()
+    {
+        return "Multiply";
+    }
+}
+
+class Divide implements SolverInterface
+{
+    public function solve($step, $input)
+    {
+        return $input / $step;
+    }
+
+    public function __toString()
+    {
+        return "Divide";
+    }
+
 }
 
 interface ExpressionInterface
@@ -219,4 +271,6 @@ interface ExpressionInterface
 interface SolverInterface
 {
     public function solve($step, $input);
+
+    public function __toString();
 }
