@@ -110,13 +110,17 @@ class ExpressionSeperator
     {
         $parts = array_reverse(str_split($expressie));
         $expressions = [];
+        $number = false;
         while(! empty($parts)) {
             $part = array_pop($parts);
             switch ($part) {
                 case ' ':
                     break;
-                case (preg_match('/[0-9]/', $part) ? true : false):
-                    $expressions[] = new Number($part);
+                case (preg_match('/[0-9.]/', $part) ? true : false):
+                    if(! $number) {
+                        $expressions[] = $number = new Number();
+                    }
+                    $number->add($part);
                     break;
             }
         }
@@ -143,26 +147,20 @@ class SolverFactory {
 
 class Number implements ExpressionInterface
 {
-    /**
-     * @var SolverInterface
-     */
-    private $number;
-
-    /**
-     * Number constructor.
-     */
-    public function __construct($number)
-    {
-        $this->number = floatval($number);
-    }
+    private $number = '';
 
     public function result()
     {
-        return $this->number;
+        return (floatval($this->number));
     }
 
     public function __toString(){
-        return 'Number('.$this->number.')';
+        return 'Number('.$this->result().')';
+    }
+
+    public function add($number)
+    {
+        $this->number .= $number;
     }
 
 }
