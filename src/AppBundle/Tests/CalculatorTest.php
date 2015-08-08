@@ -37,7 +37,7 @@ TREE;
         ];
     }
     /**
-     * @test
+     *
      */
     public function solves_expressions()
     {
@@ -49,6 +49,33 @@ TREE;
             );
         }
         $this->assertSame($this->expected, $actual);
+    }
+
+    /**
+     * @test
+     */
+    public function de_string_kan_opgedeeld_worden_in_betekenisvolle_stukken()
+    {
+        $expected = <<<TREE
+Number(1)
+Number(2.5)
+Add Substract Multiply Divide
+Bracket Number(1) Add Number(1)
+TREE;
+        $expressions = [
+            ' 1 ',
+            '2.5',
+            '+-*/',
+            '[1+ 1'
+        ];
+
+        $actual = '';
+        foreach($expressions as $expressie) {
+            $actual .= sprintf("%s\r\n",
+                implode(' ',ExpressionSeperator::breakUp($expressie))
+            );
+        }
+        $this->assertSame($expected, $actual);
     }
 }
 
@@ -77,6 +104,23 @@ class ExpressionSeperator
         }
 
         return $expression->result();
+    }
+
+    public static function breakUp($expressie)
+    {
+        $parts = array_reverse(str_split($expressie));
+        $expressions = [];
+        while(! empty($parts)) {
+            $part = array_pop($parts);
+            switch ($part) {
+                case ' ':
+                    break;
+                case (preg_match('/[0-9]/', $part) ? true : false):
+                    $expressions[] = new Number($part);
+                    break;
+            }
+        }
+        return $expressions;
     }
 }
 
@@ -115,6 +159,10 @@ class Number implements ExpressionInterface
     public function result()
     {
         return $this->number;
+    }
+
+    public function __toString(){
+        return 'Number('.$this->number.')';
     }
 
 }
